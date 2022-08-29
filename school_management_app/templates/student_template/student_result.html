@@ -21,16 +21,21 @@ Result
                    <tr>
                        <th>ID</th>
                        <th>Subject</th>
+                       <th>1st C.A</th>
+                       <th>2nd C.A</th>
                        <th>Assignment Marks</th>
                        <th>Exam Marks</th>
+                       <th>Terms Total</th>
                        <th>Status</th>
                    </tr>
                    {% for row in studentresult %}
                         <tr>
                             <td>{{ row.id }}</td>
                             <td>{{ row.subject_id.subject_name }}</td>
+                          
                             <td>{{ row.subject_assignment_marks }}</td>
                             <td>{{ row.subject_exam_marks }}</td>
+                            <td>{{ row.subject_term_total }}</td>
                             <td>
                                 {% if row.subject_exam_marks >= 40 %}
                                 <span class="alert alert-success">PASS</span>

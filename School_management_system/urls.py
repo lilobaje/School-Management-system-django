@@ -109,7 +109,7 @@ urlpatterns = [
     path('save_student_result', StaffViews.save_student_result, name="save_student_result"),
     path('edit_student_result',EditResultViewClass.as_view(), name="edit_student_result"),
     path('fetch_result_student',StaffViews.fetch_result_student, name="fetch_result_student"),  
-     path('student_view_result',StudentViews.student_view_result,name="student_view_result"),
+    path('student_view_result',StudentViews.student_view_result,name="student_view_result"),
 
     
 

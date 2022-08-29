@@ -280,16 +280,15 @@ def save_student_result(request):
     student_admin_id=request.POST.get('student_list')
     assignment_marks=request.POST.get('assignment_marks')
     exam_marks=request.POST.get('exam_marks')
+   
     subject_id=request.POST.get('subject')
-
-
     student_obj=Students.objects.get(admin=student_admin_id)
     subject_obj=Subjects.objects.get(id=subject_id)
-
     try:
         check_exist=StudentResult.objects.filter(subject_id=subject_obj,student_id=student_obj).exists()
         if check_exist:
             result=StudentResult.objects.get(subject_id=subject_obj,student_id=student_obj)
+    
             result.subject_assignment_marks=assignment_marks
             result.subject_exam_marks=exam_marks
             result.save()
@@ -303,6 +302,8 @@ def save_student_result(request):
     except:
         messages.error(request, "Failed to Add Result")
         return HttpResponseRedirect(reverse("staff_add_result"))
+
+   
 
 @csrf_exempt
 def fetch_result_student(request):
