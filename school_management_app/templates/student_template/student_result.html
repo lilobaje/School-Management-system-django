@@ -26,23 +26,25 @@ Result
                        <th>Assignment Marks</th>
                        <th>Exam Marks</th>
                        <th>Terms Total</th>
-                       <th>Status</th>
+                       <th>Grade</th>
+            
                    </tr>
                    {% for row in studentresult %}
                         <tr>
                             <td>{{ row.id }}</td>
-                            <td>{{ row.subject_id.subject_name }}</td>
-                          
+                            <td>{{ row.subject_id.subject_name }}
+                             <td>{{ row.fca_marks }}</td>
+                            <td>{{ row.sca_marks }}</td>
                             <td>{{ row.subject_assignment_marks }}</td>
                             <td>{{ row.subject_exam_marks }}</td>
-                            <td>{{ row.subject_term_total }}</td>
-                            <td>
-                                {% if row.subject_exam_marks >= 40 %}
-                                <span class="alert alert-success">PASS</span>
-                                {% else %}
-                                 <span class="alert alert-danger">FAIL</span>
-                                {% endif %}
-                            </td>
+                            <td>{{ row.overall_marks }}</td>
+
+                            <td>{% if row.overall_marks >= 39 %}
+                              <span class="alert alert-success">A</span>
+                              {% else %}
+                              <span class="alert alert-danger">F</span>
+                             {% endif %}
+                            </td>   
                         </tr>
                    {% endfor %}
                </table>

@@ -254,7 +254,7 @@ def start_live_classroom_process(request):
     subject=request.POST.get("subject")
 
     subject_obj=Subjects.objects.get(id=subject)
-    session_obj=SessionYearModel.object.get(id=session_year)
+    session_obj=SessionYearModel.objects.get(id=session_year)
     checks=OnlineClassRoom.objects.filter(subject=subject_obj,session_years=session_obj,is_active=True).exists()
     if checks:
         data=OnlineClassRoom.objects.get(subject=subject_obj,session_years=session_obj,is_active=True)
@@ -277,25 +277,32 @@ def staff_add_result(request):
 def save_student_result(request):
     if request.method!='POST':
         return HttpResponseRedirect('staff_add_result')
-    student_admin_id=request.POST.get('student_list')
-    assignment_marks=request.POST.get('assignment_marks')
-    exam_marks=request.POST.get('exam_marks')
-   
-    subject_id=request.POST.get('subject')
+    student_admin_id = request.POST.get('student_list')
+    assignment_marks = request.POST.get('assignment_marks')
+    exam_marks = request.POST.get('exam_marks')
+    subject_id = request.POST.get('subject')
+    grademk=request.POST.get('grade_marks')
+    fcamark = request.POST.get('fca_marks')
+    scamark = request.POST.get('sca_marks')
+    overall = request.POST.get('overall_marks')
     student_obj=Students.objects.get(admin=student_admin_id)
     subject_obj=Subjects.objects.get(id=subject_id)
+
     try:
         check_exist=StudentResult.objects.filter(subject_id=subject_obj,student_id=student_obj).exists()
         if check_exist:
             result=StudentResult.objects.get(subject_id=subject_obj,student_id=student_obj)
-    
             result.subject_assignment_marks=assignment_marks
             result.subject_exam_marks=exam_marks
+            result.grade_marks=grademk
+            result.fca_marks=fcamark
+            result.sca_marks=scamark
+            result.overall_marks=overall
             result.save()
             messages.success(request, "Successfully Updated Result")
             return HttpResponseRedirect(reverse("staff_add_result"))
         else:
-            result=StudentResult(student_id=student_obj,subject_id=subject_obj,subject_exam_marks=exam_marks,subject_assignment_marks=assignment_marks)
+            result=StudentResult(student_id=student_obj,subject_id=subject_obj,subject_exam_marks=exam_marks,subject_assignment_marks=assignment_marks,fca_marks=fcamark,sca_marks=scamark,overall_marks=overall,grade_marks=grademk)
             result.save()
             messages.success(request, "Successfully Added Result")
             return HttpResponseRedirect(reverse("staff_add_result"))
@@ -303,7 +310,6 @@ def save_student_result(request):
         messages.error(request, "Failed to Add Result")
         return HttpResponseRedirect(reverse("staff_add_result"))
 
-   
 
 @csrf_exempt
 def fetch_result_student(request):
@@ -313,7 +319,8 @@ def fetch_result_student(request):
     result=StudentResult.objects.filter(student_id=student_obj.id,subject_id=subject_id).exists()
     if result:
         result=StudentResult.objects.get(student_id=student_obj.id,subject_id=subject_id)
-        result_data={"exam_marks":result.subject_exam_marks,"assign_marks":result.subject_assignment_marks}
+        result_data={"exam_marks":result.subject_exam_marks,"assign_marks":result.subject_assignment_marks, "fca_marks":result.fca_marks,"sca_marks":result.sca_marks,
+        "overall_marks":result.overall_marks}
         return HttpResponse(json.dumps(result_data))
     else:
         return HttpResponse("False")

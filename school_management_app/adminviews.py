@@ -99,6 +99,7 @@ def Add_student_save(request):
                     session_year_id=form.cleaned_data["session_year_id"]
                     course_id=form.cleaned_data["course"]
                     sex=form.cleaned_data["sex"]
+                    age=form.cleaned_data['age']
                     
                     profile_pic=request.FILES['profile_pic']
                     fs=FileSystemStorage()
@@ -113,6 +114,7 @@ def Add_student_save(request):
                         session_year=SessionYearModel.objects.get(id=session_year_id)
                         user.students.session_year_id=session_year
                         user.students.gender=sex
+                        user.students.age=age
                         user.students.profile_pic=profile_pic_url
                         user.save()           
                         messages.success(request,"Successfully Added Student")
@@ -137,6 +139,7 @@ def Edit_student(request, student_id):
     form.fields['address'].initial=student.address
     form.fields['course'].initial=student.course_id.id
     form.fields['sex'].initial=student.gender
+    form.fields['age'].initial=student.age
     form.fields['session_year_id'].initial=student.session_year_id.id
    
     return render(request,"admin_home/edit_student_temp.html",{"form":form,"id":student_id,"username":student.admin.username})
@@ -160,6 +163,7 @@ def Edit_student_save(request):
             session_year_id=form.cleaned_data["session_year_id"]
             course_id = form.cleaned_data["course"]
             sex = form.cleaned_data["sex"]
+            age = form.cleaned_data['age']
 
             if request.FILES.get('profile_pic',False):
                 profile_pic=request.FILES['profile_pic']
@@ -181,6 +185,7 @@ def Edit_student_save(request):
                 session_year = SessionYearModel.objects.get(id=session_year_id)
                 student.session_year_id = session_year
                 student.gender=sex
+                student.age=age
                 course=Courses.objects.get(id=course_id)
                 student.course_id=course
                 if profile_pic_url!=None:

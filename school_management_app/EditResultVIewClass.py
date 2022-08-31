@@ -20,13 +20,18 @@ class EditResultViewClass(View):
             student_admin_id = form.cleaned_data['student_ids']
             assignment_marks = form.cleaned_data['assignment_marks']
             exam_marks = form.cleaned_data['exam_marks']
+            fcamark = request.POST.get('fca_marks')
+            scamark = request.POST.get('sca_marks')
+            overall = request.POST.get('overall_marks')
             subject_id = form.cleaned_data['subject_id']
-
             student_obj = Students.objects.get(admin=student_admin_id)
             subject_obj = Subjects.objects.get(id=subject_id)
             result=StudentResult.objects.get(subject_id=subject_obj,student_id=student_obj)
             result.subject_assignment_marks=assignment_marks
             result.subject_exam_marks=exam_marks
+            result.fca_marks=fcamark
+            result.sca_marks=scamark
+            result.overall_marks=overall
             result.save()
             messages.success(request, "Successfully Updated Result")
             return HttpResponseRedirect(reverse("edit_student_result"))

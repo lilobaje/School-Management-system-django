@@ -41,7 +41,7 @@ class AddStudentForm(forms.Form):
         ("Male","Male"),
         ("Female","Female")
     )
-
+    age = forms.CharField(label="Age", max_length=50, widget=forms.TextInput(attrs={"class": "form-control"}))
     course=forms.ChoiceField(label="Course",choices=course_list,widget=forms.Select(attrs={"class":"form-control"}))
     sex=forms.ChoiceField(label="Sex",choices=gender_choice,widget=forms.Select(attrs={"class":"form-control"}))
     session_year_id=forms.ChoiceField(label="Session Year",choices=session_list,widget=forms.Select(attrs={"class":"form-control"}))
@@ -79,7 +79,7 @@ class EditStudentForm(forms.Form):
         ("Male","Male"),
         ("Female","Female")
     )
-
+    age = forms.CharField(label="Address", max_length=50, widget=forms.TextInput(attrs={"class": "form-control"}))
     course=forms.ChoiceField(label="Course",choices=course_list,widget=forms.Select(attrs={"class":"form-control"}))
     sex=forms.ChoiceField(label="Sex",choices=gender_choice,widget=forms.Select(attrs={"class":"form-control"}))
     session_year_id=forms.ChoiceField(label="Session Year",choices=session_list,widget=forms.Select(attrs={"class":"form-control"}))
@@ -112,4 +112,10 @@ class EditResultForm(forms.Form):
     session_ids=forms.ChoiceField(label="Session Year",choices=session_list,widget=forms.Select(attrs={"class":"form-control"}))
     student_ids=ChoiceNoValidation(label="Student",widget=forms.Select(attrs={"class":"form-control"}))
     assignment_marks=forms.CharField(label="Assignment Marks",widget=forms.TextInput(attrs={"class":"form-control"}))
-    exam_marks=forms.CharField(label="Exam Marks",widget=forms.TextInput(attrs={"class":"form-control"}))
+    fca_marks=forms.CharField(label="1st Ca",widget=forms.TextInput(attrs={"class":"form-control"}))
+    sca_marks=forms.CharField(label="2nd Ca",widget=forms.TextInput(attrs={"class":"form-control"}))
+    exam_marks=forms.CharField(label="Exam Ca",widget=forms.TextInput(attrs={"class":"form-control"}))
+    overall_marks=forms.CharField(label="Overall Ca",widget=forms.TextInput(attrs={"class":"form-control"}))
+    
+    
+
