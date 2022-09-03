@@ -1,4 +1,5 @@
 {% extends 'student_template/base_template.html' %}
+{% load static %}
 {% block page_title %}
 Result
 {% endblock page_title %}
@@ -7,32 +8,86 @@ Result
     <section class="content">
       <div class="container-fluid">
                     <div class="row">
+                      <div class="col-md-12">
+                        <!-- general form elements -->
+                       <div class="card card-primary">
+                      <div class="col-md-12">
+                        <img class="rounded mx-auto d-block" src="{% static "image/logo.jpg" %}" />
+                      </div>
+                      
+                      <div class="col-md-12">
+                        <h1 class="text-center">VAWULENCE HIGH SCHOOL</h1>
+                        <h6 class="text-center">P.O BOX 57, GIDAN OG MINNA, NIGER STATE.</h1>
+                        <h5 class="text-center">TERMINAL REPORTSHEET FOR SENIOR SECONDARY SCHOOL</h1>
+                      </div>
+</div>
+
+                      </div>
+                      <div class="col-md-12">
+                      <div class="card card-primary">
+                      <div class="card-body">
+                        <table class="table table-bordered">
+                          
+                          <tbody >
+                            <tr>
+                              <td class="text-center font-weight-bold">STUDENT_NAME: <span><u>John Obaje</u></span></td>
+                              <td class="text-center font-weight-bold">ADM NO_: <span>1315</span></td>
+                              
+                             
+                            </tr>
+                            <tr>
+                              <td class="text-center font-weight-bold">STUDENT_Class: <span> <u>JSS1A</u></span></td>
+                              <td class="text-center font-weight-bold">SCHOOL HOUSE_: <span><u>RED</u></span></td>
+                              
+                            
+                            </tr>
+                            <tr>
+                              <td class="text-center font-weight-bold">AGE: <span><u>12 Years</u></span></td>
+                              <td class="text-center font-weight-bold">AVERAGE_CLASS_AGE: <span><u>12Years</u></span></td>
+                              
+                           
+                            </tr>
+                            <tr>
+                              <td class="text-center font-weight-bold">SEX: <span><u>Male</u></span></td>
+                             
+                              <td class="text-center font-weight-bold">FORM_TEACHER: <span><u>Michael</u></span></td>
+                             
+
+                             
+                              
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                    </div>
+                    </div>
+                       
+                    
+
               <div class="col-md-12">
             <!-- general form elements -->
-
-            <!-- /.card -->
            <div class="card card-primary">
               <div class="card-header">
                 <h3 class="card-title">Result</h3>
               </div>
-
-               <div class="table">
-               <table class="table">
-                   <tr>
+               <div class="table-responsive-md">
+               <table class="table table-bordered table-sm table-hover">
+                   <tr class="text-center">
                        <th>ID</th>
                        <th>Subject</th>
                        <th>1st C.A</th>
                        <th>2nd C.A</th>
-                       <th>Assignment Marks</th>
-                       <th>Exam Marks</th>
+                       <th>Total C.A</th>
+                       <th>Terms Exams</th>
                        <th>Terms Total</th>
                        <th>Grade</th>
             
                    </tr>
                    {% for row in studentresult %}
-                        <tr>
+                        <tr class="text-center">
                             <td>{{ row.id }}</td>
-                            <td>{{ row.subject_id.subject_name }}
+                            <td>{{ row.subject_id.subject_name }}</td>
                              <td>{{ row.fca_marks }}</td>
                             <td>{{ row.sca_marks }}</td>
                             <td>{{ row.subject_assignment_marks }}</td>
@@ -40,9 +95,9 @@ Result
                             <td>{{ row.overall_marks }}</td>
 
                             <td>{% if row.overall_marks >= 39 %}
-                              <span class="alert alert-success">A</span>
+                              <span class="badge badge-success">A</span>
                               {% else %}
-                              <span class="alert alert-danger">F</span>
+                              <span class="badge badge-danger">F</span>
                              {% endif %}
                             </td>   
                         </tr>

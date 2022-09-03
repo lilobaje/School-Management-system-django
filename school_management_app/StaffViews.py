@@ -281,7 +281,6 @@ def save_student_result(request):
     assignment_marks = request.POST.get('assignment_marks')
     exam_marks = request.POST.get('exam_marks')
     subject_id = request.POST.get('subject')
-    grademk=request.POST.get('grade_marks')
     fcamark = request.POST.get('fca_marks')
     scamark = request.POST.get('sca_marks')
     overall = request.POST.get('overall_marks')
@@ -294,7 +293,6 @@ def save_student_result(request):
             result=StudentResult.objects.get(subject_id=subject_obj,student_id=student_obj)
             result.subject_assignment_marks=assignment_marks
             result.subject_exam_marks=exam_marks
-            result.grade_marks=grademk
             result.fca_marks=fcamark
             result.sca_marks=scamark
             result.overall_marks=overall
@@ -302,7 +300,7 @@ def save_student_result(request):
             messages.success(request, "Successfully Updated Result")
             return HttpResponseRedirect(reverse("staff_add_result"))
         else:
-            result=StudentResult(student_id=student_obj,subject_id=subject_obj,subject_exam_marks=exam_marks,subject_assignment_marks=assignment_marks,fca_marks=fcamark,sca_marks=scamark,overall_marks=overall,grade_marks=grademk)
+            result=StudentResult(student_id=student_obj,subject_id=subject_obj,subject_exam_marks=exam_marks,subject_assignment_marks=assignment_marks,fca_marks=fcamark,sca_marks=scamark,overall_marks=overall)
             result.save()
             messages.success(request, "Successfully Added Result")
             return HttpResponseRedirect(reverse("staff_add_result"))
