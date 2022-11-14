@@ -4,8 +4,14 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import View
+from school_management_app.process import html_to_pdf 
 
 from school_management_app.models import Students, Courses,StudentResult, Subjects, CustomUser,OnlineClassRoom, Attendance, AttendanceReport, LeaveReportStudent, FeedBackStudent, NotificationStudent, SessionYearModel
+
+
+
+
 
 
 def student_home(request):
@@ -174,6 +180,26 @@ def join_class_room(request,subject_id,session_year_id):
         return HttpResponse("Subject Not Found")
 
 def student_view_result(request):
-    student=Students.objects.get(admin=request.user.id)
+    user=CustomUser.objects.get(id=request.user.id)
+    student=Students.objects.get(admin=user)
     studentresult=StudentResult.objects.filter(student_id=student.id)
-    return render(request,"student_template/student_result.html",{"studentresult":studentresult})
+
+    return render(request,"student_template/student_result.html",{"studentresult":studentresult,"student":student})
+
+
+
+
+
+
+#Creating a class based view
+class GeneratePdf(View):
+     def get(self, request, *args, **kwargs):
+        user=CustomUser.objects.get(id=request.user.id)
+        student=Students.objects.get(admin=user)
+        studentresult=StudentResult.objects.filter(student_id=student.id)
+         
+        # getting the template
+        pdf = html_to_pdf('student_template/student_result.html',{"studentresult":studentresult,"student":student,'user':user})
+         
+         # rendering the template
+        return HttpResponse(pdf, content_type='application/pdf')

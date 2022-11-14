@@ -79,7 +79,7 @@ class EditStudentForm(forms.Form):
         ("Male","Male"),
         ("Female","Female")
     )
-    age = forms.CharField(label="Address", max_length=50, widget=forms.TextInput(attrs={"class": "form-control"}))
+    age = forms.CharField(label="Age", max_length=50, widget=forms.TextInput(attrs={"class": "form-control"}))
     course=forms.ChoiceField(label="Course",choices=course_list,widget=forms.Select(attrs={"class":"form-control"}))
     sex=forms.ChoiceField(label="Sex",choices=gender_choice,widget=forms.Select(attrs={"class":"form-control"}))
     session_year_id=forms.ChoiceField(label="Session Year",choices=session_list,widget=forms.Select(attrs={"class":"form-control"}))

@@ -1,14 +1,18 @@
 from fileinput import filename
 import json
+
+from django.db.models import Q
 from django import forms
+from .filters import StaffsFilter
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from mysqlx import Session
 import requests
+from school_management_app.filters import StaffsFilter
 
 from school_management_app.forms import AddStudentForm, EditStudentForm
 from school_management_app.models import (Courses, CustomUser, FeedBackStaffs,
@@ -79,6 +83,21 @@ def StaffHome(request):
 def Add_staff(request):
     return render(request,"admin_home/add_staff_temp.html")
 
+def deletestaff(request,staff_id):
+    staff= Staffs.objects.get(admin=staff_id)
+    if request.method == 'POST':
+        staff.delete()
+        return redirect('manage_staff')
+    return render(request,'admin_home/delete.html', {'obj':staff})
+
+def deletestudent(request,student_id):
+    student= Students.objects.get(admin=student_id)
+    if request.method == 'POST':
+        student.delete()
+        return redirect('manage_student')
+    return render(request,'admin_home/delete.html', {'obj':student})
+
+
 def Add_student(request):
     courses=Courses.objects.all()
     form=AddStudentForm()
@@ -107,12 +126,13 @@ def Add_student_save(request):
                     profile_pic_url=fs.url(filename)
                    
                     try:
-                        user=CustomUser.objects.create_user(username=username,password=password,email=email,last_name=last_name,first_name=first_name,user_type=3)
+                        user=CustomUser.objects.create_user(username=username,password=password,last_name=last_name,first_name=first_name,user_type=3)
                         user.students.address=address
                         course_obj=Courses.objects.get(id=course_id)
                         user.students.course_id=course_obj
                         session_year=SessionYearModel.objects.get(id=session_year_id)
                         user.students.session_year_id=session_year
+                        user.students.email=email
                         user.students.gender=sex
                         user.students.age=age
                         user.students.profile_pic=profile_pic_url
@@ -265,8 +285,9 @@ def add_staff_save(request):
         password=request.POST.get("password")
         address=request.POST.get("address")        
         try:
-            user=CustomUser.objects.create_user(username=username,password=password,email=email,last_name=last_name,first_name=first_name,user_type=2)
+            user=CustomUser.objects.create_user(username=username,password=password,last_name=last_name,first_name=first_name,user_type=2)
             user.staffs.address=address
+            user.staffs.email=email
             user.save()
             messages.success(request,"Successfully Added Staff")
             return HttpResponseRedirect(reverse("add_staff"))
@@ -277,7 +298,9 @@ def add_staff_save(request):
 
 def Manage_staff(request):
     staffs=Staffs.objects.all()
-    return render(request,"admin_home/manage_staff_temp.html",{"staffs":staffs})
+    Staffs_Filter=StaffsFilter(request.GET, queryset=staffs)
+    context = {'Staffs_Filter':Staffs_Filter, 'staffs':staffs}
+    return render(request,"admin_home/manage_staff_temp.html",context)
 
 def edit_staff(request,staff_id):
     staff=Staffs.objects.get(admin=staff_id)
@@ -316,8 +339,29 @@ def Edit_staff_save(request):
 
 
 def Manage_student(request):
+   
     students=Students.objects.all()
-    return render(request,"admin_home/manage_student_temp.html",{"students":students})
+    context = {'students':students }
+    return render(request,"admin_home/manage_student_temp.html",context)
+
+def Search_student(request):
+    q = request.GET.get('q') if request.GET.get('q') != None else ''
+    students=Students.objects.filter(
+        Q(email__icontains=q) 
+        
+        
+    
+    )
+    context = {'students':students }
+    return render(request,"admin_home/search_student_temp.html",context)
+
+
+
+def modal(request):
+    
+    return render(request,"admin_home/modals.html")
+
+
 
 def Manage_course(request):
     courses=Courses.objects.all()
@@ -564,17 +608,17 @@ def send_student_notification(request):
     message=request.POST.get("message")
     student=Students.objects.get(admin=id)
     token=student.fcm_token
-    url="https://fcm.googleapis.com/fcm/send"
+    url="https://fcm.googleapis.com/v1/projects/myproject-b5ae1/messages:send"
     body={
         "notification":{
-            "title":"Student Management System",
+            "title":"School Management System",
             "body":message,
-            "click_action": "https://studentmanagementsystem22.herokuapp.com/student_all_notification",
+            "click_action": "127.0.0.1/student_all_notification",
             "icon": "http://studentmanagementsystem22.herokuapp.com/static/dist/img/user2-160x160.jpg"
         },
         "to":token
     }
-    headers={"Content-Type":"application/json","Authorization":"key=SERVER_KEY_HERE"}
+    headers={"Content-Type":"application/json","Authorization":"key=AAAAgOmANU8:APA91bEtqGZ2ywNyTxaJWqTxcgKoKzQjOIA2O98hpgOenMnrfqJYWzFHhiuB7Pegpys-m4UiOd7SluGkMF1d26kcajiWr22iuYNyJzlEJDfB_GxNJ3eagx7d32On9x-DaGH2MPCBMVGX"}
     data=requests.post(url,data=json.dumps(body),headers=headers)
     notification=NotificationStudent(student_id=student,message=message)
     notification.save()
@@ -587,17 +631,17 @@ def send_staff_notification(request):
     message=request.POST.get("message")
     staff=Staffs.objects.get(admin=id)
     token=staff.fcm_token
-    url="https://fcm.googleapis.com/fcm/send"
+    url="https://fcm.googleapis.com/v1/projects/myproject-b5ae1/messages:send"
     body={
         "notification":{
-            "title":"Student Management System",
+            "title":"School Management System",
             "body":message,
-            "click_action":"https://studentmanagementsystem22.herokuapp.com/staff_all_notification",
+            "click_action":"127.0.0.1:8000/staff_all_notification",
             "icon":"http://studentmanagementsystem22.herokuapp.com/static/dist/img/user2-160x160.jpg"
         },
         "to":token
     }
-    headers={"Content-Type":"application/json","Authorization":"key=SERVER_KEY_HERE"}
+    headers={"Content-Type":"application/json","Authorization":"key=AAAAgOmANU8:APA91bEtqGZ2ywNyTxaJWqTxcgKoKzQjOIA2O98hpgOenMnrfqJYWzFHhiuB7Pegpys-m4UiOd7SluGkMF1d26kcajiWr22iuYNyJzlEJDfB_GxNJ3eagx7d32On9x-DaGH2MPCBMVGX"}
     data=requests.post(url,data=json.dumps(body),headers=headers)
     notification=NotificationStaffs(staff_id=staff,message=message)
     notification.save()

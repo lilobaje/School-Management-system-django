@@ -30,28 +30,31 @@ Result
                           
                           <tbody >
                             <tr>
-                              <td class="text-center font-weight-bold">STUDENT_NAME: <span><u>John Obaje</u></span></td>
-                              <td class="text-center font-weight-bold">ADM NO_: <span>1315</span></td>
+        <div class="info">
+                              <td class="text-center font-weight-bold">STUDENT_NAME: <span><u>{{ user.first_name }} {{ user.last_name }}</u></span></td>
+                              <td class="text-center font-weight-bold">ADM NO_: <span>{{ user.id }}</span></td>
                               
                              
                             </tr>
                             <tr>
-                              <td class="text-center font-weight-bold">STUDENT_Class: <span> <u>JSS1A</u></span></td>
+                              <td class="text-center font-weight-bold">STUDENT_Class: <span> <u>JSS{{ student.course_id.id }}</u></span></td>
                               <td class="text-center font-weight-bold">SCHOOL HOUSE_: <span><u>RED</u></span></td>
                               
                             
                             </tr>
                             <tr>
-                              <td class="text-center font-weight-bold">AGE: <span><u>12 Years</u></span></td>
-                              <td class="text-center font-weight-bold">AVERAGE_CLASS_AGE: <span><u>12Years</u></span></td>
-                              
+                              <td class="text-center font-weight-bold">AGE: <span><u>{{ student.age }}</u></span></td>
+                              <td class="text-center font-weight-bold">EMAIL: <span><u>{{ user.email }}</u></span></td>
                            
                             </tr>
+                          
                             <tr>
-                              <td class="text-center font-weight-bold">SEX: <span><u>Male</u></span></td>
-                             
+                        
+                              <td class="text-center font-weight-bold">SEX: <span><u>{{ student.gender }}</u></span></td>
+                     
+                              
                               <td class="text-center font-weight-bold">FORM_TEACHER: <span><u>Michael</u></span></td>
-                             
+                            
 
                              
                               
@@ -62,7 +65,7 @@ Result
 
                     </div>
                     </div>
-                       
+                  
                     
 
               <div class="col-md-12">
@@ -94,11 +97,19 @@ Result
                             <td>{{ row.subject_exam_marks }}</td>
                             <td>{{ row.overall_marks }}</td>
 
-                            <td>{% if row.overall_marks >= 39 %}
+                            <td>{% if row.overall_marks >= 70 %}
                               <span class="badge badge-success">A</span>
-                              {% else %}
+                              {% elif row.overall_marks >= 60 %}
+                              <span class="badge badge-danger">B</span>
+                              {% elif row.overall_marks >= 50 %}
+                              <span class="badge badge-danger">C</span>
+                              {% elif row.overall_marks >= 40 %}
+                              <span class="badge badge-danger">P</span>
+                              {% elif row.overall_marks <= 39 %}
                               <span class="badge badge-danger">F</span>
+
                              {% endif %}
+                             
                             </td>   
                         </tr>
                    {% endfor %}

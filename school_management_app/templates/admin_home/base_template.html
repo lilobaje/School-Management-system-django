@@ -45,7 +45,16 @@
     </ul>
 <h4 style="margin-left: 10px; margin-top: 5px;">IMELDA COLLEGE ADMIN</h2>
     <!-- SEARCH FORM -->
-   
+    <form class="form-inline ml-3"  method="GET" >
+      <div class="input-group input-group-sm">
+        <input class="form-control form-control-navbar" name='q' type="search" placeholder="Search" aria-label="Search">
+        <div class="input-group-append">
+          <button class="btn btn-navbar" type="submit">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>
 
     <!-- Right navbar links -->
    {% include 'admin_home/notification_template.html' with user=user id=id %}
@@ -61,7 +70,9 @@
     <!-- /.content-header -->
 
     <!-- Main content -->
-   {% block main_content %} {% endblock main_content %}
+   {% block main_content %} 
+   
+   {% endblock main_content %}
     <!-- /.content -->
   </div>
   <!-- /.content-wrapper -->

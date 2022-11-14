@@ -82,6 +82,7 @@ Add Results
                 type:'POST',
                 data:{subject:subject,session_year:session_year},
             })
+
             .done(function(response){
                 var json_data=JSON.parse(response);
                 console.log(json_data)
@@ -125,8 +126,6 @@ Add Results
                 $("#student_data").html(div_data);
 
             })
-
-            
 
 
             .fail(function(){

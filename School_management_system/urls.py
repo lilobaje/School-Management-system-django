@@ -48,6 +48,7 @@ urlpatterns = [
     path('manage_subject', adminviews.Manage_subject,name="manage_subject"),
     path('edit_staff/<str:staff_id>', adminviews.edit_staff,name="edit_staff"),
     path('edit_staff_save', adminviews.Edit_staff_save,name="edit_staff_save"),
+    path('modal', adminviews.modal,name="modal"),
     path('edit_student/<str:student_id>', adminviews.Edit_student,name="edit_student"),
     path('edit_student_save', adminviews.Edit_student_save,name="edit_student_save"),
     path('staff_home', StaffViews.staff_home, name="staff_home"),
@@ -110,6 +111,10 @@ urlpatterns = [
     path('edit_student_result',EditResultViewClass.as_view(), name="edit_student_result"),
     path('fetch_result_student',StaffViews.fetch_result_student, name="fetch_result_student"),  
     path('student_view_result',StudentViews.student_view_result,name="student_view_result"),
+    path('deletestaff/<str:staff_id>/',adminviews.deletestaff,name='deletestaff'),
+    path('deletestudent/<str:student_id>/',adminviews.deletestudent,name='deletestudent'),
+    path('Search_student/',adminviews.Search_student,name='Search_student'),
+    path('pdf/', StudentViews.GeneratePdf.as_view(), name="pdf"), 
 
     
 
