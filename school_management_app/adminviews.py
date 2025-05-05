@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from mysqlx import Session
+# from mysqlx import Session
 import requests
 from school_management_app.filters import StaffsFilter
 
