@@ -48,7 +48,7 @@
             <a href="{{ add_student }}" class="nav-link {% if request.path == add_student %} active {% endif %}">
               <i class="nav-icon fas fa-user"></i>
               <p>
-              Add Student
+             Register Student
               </p>
             </a>
         </li>
@@ -104,7 +104,7 @@
           <a href="{{ add_course }}" class="nav-link {% if request.path == add_course %} active {% endif %}">
             <i class="nav-icon fas fa-book"></i>
             <p>
-            Add Course
+            Add Class
             </p>
           </a>
       </li>
@@ -117,7 +117,7 @@
         <a href="{{ manage_course }}" class="nav-link {% if request.path == manage_course %} active {% endif %} {% if request.path == edit_course %} active {% endif %}">
           <i class="nav-icon fas fa-book"></i>
           <p>
-          Manage Course
+          Manage Class
           </p>
         </a>
     </li>
@@ -141,7 +141,7 @@
             <a href="{{ student_feedback_message }}" class="nav-link {% if request.path == student_feedback_message %} active {% endif %}">
               <i class="nav-icon fas fa-comment"></i>
               <p>
-              Student Feedback
+              Student Messages
               </p>
             </a>
         </li>
@@ -152,7 +152,7 @@
             <a href="{{ staff_feedback_message }}" class="nav-link {% if request.path == staff_feedback_message %} active {% endif %}">
               <i class="nav-icon fas fa-comment"></i>
               <p>
-                Staff Feedback
+                Staff Messages
               </p>
             </a>
         </li>

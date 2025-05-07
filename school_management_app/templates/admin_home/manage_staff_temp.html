@@ -3,67 +3,75 @@
 Manage Staff
 {% endblock page_title %}
 {% block main_content %}
-    <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
 
 
            <div class="row">
-          <div class="col-12">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Staff Details</h3>
-            
-                <div class="card-tools">
-                  <div class="input-group input-group-sm" style="width: 150px;">
-                    <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
-                    <div class="input-group-append">
-                      <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- /.card-header -->
-              <div class="card-body table-responsive p-0">
-                <table class="table table-hover text-nowrap">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>First Name</th>
-                      <th>Last Name</th>
-                      <th>User Name</th>
-                      <th>Email</th>
-                      <th>Address</th>
-                      <th>Last Login</th>
-                      <th>Date Joined</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  {% for staff in staffs %}
-                    <tr>
-                      <td>{{ staff.admin.id }}</td>
-                      <td>{{ staff.admin.first_name }}</td>
-                      <td>{{ staff.admin.last_name }}</td>
-                      <td>{{ staff.admin.username }}</td>
-                      <td>{{ staff.email }}</td>
-                      <td>{{ staff.address }}</td>
-                      <td>{{ staff.admin.last_login }}</td>
-                      <td>{{ staff.admin.date_joined }}</td>
-                      <td><a href="/edit_staff/{{ staff.admin.id }}" class="btn btn-success">Edit</a></td>
-                      <td><a href="/deletestaff/{{ staff.admin.id }}" class="btn btn-success">Delete</a></td>
-                    </tr>
-                  {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-              <!-- /.card-body -->
-            </div>
-            <!-- /.card -->
-          </div>
-        </div>
+           <div class="col-12">
+             <div class="card">
+               <div class="card-header">
+                 <h3 class="card-title">Staff Details</h3>
+
+                 <div class="card-tools">
+                   <div class="input-group input-group-sm" style="width: 150px;">
+                     {# The search box requires backend implementation in the view #}
+                     <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
+                     <div class="input-group-append">
+                       <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+               <div class="card-body table-responsive p-0">
+                 <table class="table table-hover text-nowrap">
+                   <thead>
+                     <tr>
+                       {# Display the CustomUser ID via the related 'user' field #}
+                       <th>ID</th>
+                       {# Display names, username, email from the related 'user' field #}
+                       <th>First Name</th>
+                       <th>Last Name</th>
+                       <th>User Name</th>
+                       <th>Email</th>
+                       {# Address is on the Staffs model #}
+                       <th>Address</th>
+                       {# Display login/join dates from the related 'user' field #}
+                       <th>Last Login</th>
+                       <th>Date Joined</th>
+                       <th>Action</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                   {% for staff in staffs %}
+                     <tr>
+                       {# Access the CustomUser ID via the 'user' relationship #}
+                       <td>{{ staff.user.id }}</td>
+                       {# Access names, username, email from the 'user' relationship #}
+                       <td>{{ staff.user.first_name }}</td>
+                       <td>{{ staff.user.last_name }}</td>
+                       <td>{{ staff.user.username }}</td>
+                       {# Access email from the 'user' relationship #}
+                       <td>{{ staff.user.email }}</td>
+                       {# Address is on the Staffs object itself #}
+                       <td>{{ staff.address }}</td>
+                       {# Access login/join dates from the 'user' relationship #}
+                       <td>{{ staff.user.last_login }}</td>
+                       <td>{{ staff.user.date_joined }}</td>
+                       <td>
+                           {# Use the url tag and the CustomUser ID for the Edit link #}
+                           <a href="{% url 'edit_staff' staff.user.id %}" class="btn btn-success btn-sm">Edit</a>
+                           {# Use the url tag and the CustomUser ID for the Delete link #}
+                           <a href="{% url 'deletestaff' staff.user.id %}" class="btn btn-danger btn-sm">Delete</a>
+                       </td>
+                     </tr>
+                   {% endfor %}
+                   </tbody>
+                 </table>
+               </div>
+               </div>
+             </div>
+         </div>
       </div>
     </section>
-    <!-- /.content -->
-{% endblock main_content %}
-
+    {% endblock main_content %}

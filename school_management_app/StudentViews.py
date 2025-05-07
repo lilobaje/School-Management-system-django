@@ -1,205 +1,337 @@
 import datetime
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404 # Import get_object_or_404
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
-from school_management_app.process import html_to_pdf 
+# Assuming html_to_pdf is correctly implemented elsewhere
+from school_management_app.process import html_to_pdf
 
-from school_management_app.models import Students, Courses,StudentResult, Subjects, CustomUser,OnlineClassRoom, Attendance, AttendanceReport, LeaveReportStudent, FeedBackStudent, NotificationStudent, SessionYearModel
+from school_management_app.models import (Students, Courses, StudentResult, Subjects,
+                                         CustomUser, OnlineClassRoom, Attendance,
+                                         AttendanceReport, LeaveReportStudent,
+                                         FeedBackStudent, NotificationStudent, SessionYearModel)
 
-
-
-
-
-
+# --- Student Home View ---
 def student_home(request):
-    student_obj=Students.objects.get(admin=request.user.id)
-    attendance_total=AttendanceReport.objects.filter(student_id=student_obj).count()
-    attendance_present=AttendanceReport.objects.filter(student_id=student_obj,status=True).count()
-    attendance_absent=AttendanceReport.objects.filter(student_id=student_obj,status=False).count()
-    course=Courses.objects.get(id=student_obj.course_id.id)
-    subjects=Subjects.objects.filter(course_id=course).count()
-    subjects_data=Subjects.objects.filter(course_id=course)
-    session_obj=SessionYearModel.objects.get(id=student_obj.session_year_id.id)
+    # Get the student's profile linked to the logged-in user
+    # Use get_object_or_404 for safety, use the new field name 'user'
+    student_obj = get_object_or_404(Students, user=request.user)
 
-    subject_name=[]
-    data_present=[]
-    data_absent=[]
-    subject_data=Subjects.objects.filter(course_id=student_obj.course_id)
+    # Filter using the new field name 'student'
+    attendance_total = AttendanceReport.objects.filter(student=student_obj).count()
+    attendance_present = AttendanceReport.objects.filter(student=student_obj, status=True).count()
+    attendance_absent = AttendanceReport.objects.filter(student=student_obj, status=False).count()
+
+    # Access related course using the new field name 'course'
+    course = student_obj.course
+    # Filter subjects using the new field name 'course'
+    subjects = Subjects.objects.filter(course=course).count()
+    # subjects_data = Subjects.objects.filter(course=course) # Redundant if not used directly
+
+    # Access related session year using the new field name 'session_year'
+    session_obj = student_obj.session_year
+
+    subject_name = []
+    data_present = []
+    data_absent = []
+    # Filter subjects using the new field name 'course'
+    subject_data = Subjects.objects.filter(course=student_obj.course)
     for subject in subject_data:
-        attendance=Attendance.objects.filter(subject_id=subject.id)
-        attendance_present_count=AttendanceReport.objects.filter(attendance_id__in=attendance,status=True,student_id=student_obj.id).count()
-        attendance_absent_count=AttendanceReport.objects.filter(attendance_id__in=attendance,status=False,student_id=student_obj.id).count()
+        # Filter Attendance using the new field name 'subject'
+        attendance = Attendance.objects.filter(subject=subject)
+        # Filter AttendanceReport using new field names 'attendance' and 'student'
+        attendance_present_count = AttendanceReport.objects.filter(
+            attendance__in=attendance,
+            status=True,
+            student=student_obj
+        ).count()
+        attendance_absent_count = AttendanceReport.objects.filter(
+            attendance__in=attendance,
+            status=False,
+            student=student_obj
+        ).count()
         subject_name.append(subject.subject_name)
         data_present.append(attendance_present_count)
         data_absent.append(attendance_absent_count)
 
+    return render(request, "student_template/student_home_template.html", {
+        "total_attendance": attendance_total,
+        "attendance_absent": attendance_absent,
+        "attendance_present": attendance_present,
+        "subjects": subjects, # This count might not be what the template expects vs. subjects_data
+        "data_name": subject_name,
+        "data1": data_present,
+        "data2": data_absent
+    })
 
-    return render(request,"student_template/student_home_template.html",{"total_attendance":attendance_total,"attendance_absent":attendance_absent,"attendance_present":attendance_present,"subjects":subjects,"data_name":subject_name,"data1":data_present,"data2":data_absent})
-
-
+# --- Student View Attendance ---
 def student_view_attendance(request):
-    student=Students.objects.get(admin=request.user.id)
-    course=student.course_id
-    subjects=Subjects.objects.filter(course_id=course)
-    return render(request,"student_template/student_view_attendance.html",{"subjects":subjects})
+    # Get the student's profile
+    student = get_object_or_404(Students, user=request.user)
+    # Access related course using the new field name 'course'
+    course = student.course
+    # Filter subjects using the new field name 'course'
+    subjects = Subjects.objects.filter(course=course)
+    return render(request, "student_template/student_view_attendance.html", {"subjects": subjects})
 
+# --- Student View Attendance Post (Filtering Attendance) ---
 def student_view_attendance_post(request):
-    subject_id=request.POST.get("subject")
-    start_date=request.POST.get("start_date")
-    end_date=request.POST.get("end_date")
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("student_view_attendance")) # Redirect if not POST
 
-    start_data_parse=datetime.datetime.strptime(start_date,"%Y-%m-%d").date()
-    end_data_parse=datetime.datetime.strptime(end_date,"%Y-%m-%d").date()
-    subject_obj=Subjects.objects.get(id=subject_id)
-    user_object=CustomUser.objects.get(id=request.user.id)
-    stud_obj=Students.objects.get(admin=user_object)
+    subject_id = request.POST.get("subject")
+    start_date = request.POST.get("start_date")
+    end_date = request.POST.get("end_date")
 
-    attendance=Attendance.objects.filter(attendance_date__range=(start_data_parse,end_data_parse),subject_id=subject_obj)
-    attendance_reports=AttendanceReport.objects.filter(attendance_id__in=attendance,student_id=stud_obj)
-    return render(request,"student_template/student_attendance_data.html",{"attendance_reports":attendance_reports})
+    try:
+        # Parse dates
+        start_data_parse = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_data_parse = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+    except ValueError:
+        messages.error(request, "Invalid date format.")
+        return HttpResponseRedirect(reverse("student_view_attendance"))
 
+    # Get the student's profile
+    stud_obj = get_object_or_404(Students, user=request.user)
+    # Get the subject object
+    subject_obj = get_object_or_404(Subjects, id=subject_id)
 
+    # Filter Attendance using the new field name 'subject'
+    attendance = Attendance.objects.filter(
+        attendance_date__range=(start_data_parse, end_data_parse),
+        subject=subject_obj
+    )
+    # Filter AttendanceReport using new field names 'attendance' and 'student'
+    attendance_reports = AttendanceReport.objects.filter(
+        attendance__in=attendance,
+        student=stud_obj
+    )
+
+    return render(request, "student_template/student_attendance_data.html", {"attendance_reports": attendance_reports})
+
+# --- Student Apply Leave ---
 def student_apply_leave(request):
-    staff_obj = Students.objects.get(admin=request.user.id)
-    leave_data=LeaveReportStudent.objects.filter(student_id=staff_obj)
-    return render(request,"student_template/student_apply_leave.html",{"leave_data":leave_data})
+    # Get the student's profile
+    # Renamed variable from staff_obj to student_obj for clarity
+    student_obj = get_object_or_404(Students, user=request.user)
+    # Filter leave reports using the new field name 'student'
+    leave_data = LeaveReportStudent.objects.filter(student=student_obj)
+    return render(request, "student_template/student_apply_leave.html", {"leave_data": leave_data})
 
+# --- Student Apply Leave Save ---
 def student_apply_leave_save(request):
-    if request.method!="POST":
+    if request.method != "POST":
         return HttpResponseRedirect(reverse("student_apply_leave"))
     else:
-        leave_date=request.POST.get("leave_date")
-        leave_msg=request.POST.get("leave_msg")
+        leave_date = request.POST.get("leave_date")
+        leave_msg = request.POST.get("leave_msg")
 
-        student_obj=Students.objects.get(admin=request.user.id)
+        # Get the student's profile
+        student_obj = get_object_or_404(Students, user=request.user)
+
         try:
-            leave_report=LeaveReportStudent(student_id=student_obj,leave_date=leave_date,leave_message=leave_msg,leave_status=0)
+            # Create LeaveReportStudent using new field name 'student'
+            # Leave_status is Boolean, False is default (Pending/Rejected)
+            leave_report = LeaveReportStudent(
+                student=student_obj,
+                leave_date=leave_date, # Assuming leave_date is in a format Django DateField accepts
+                leave_message=leave_msg,
+                leave_status=False # Use False for pending/new leave
+            )
             leave_report.save()
             messages.success(request, "Successfully Applied for Leave")
             return HttpResponseRedirect(reverse("student_apply_leave"))
-        except:
-            messages.error(request, "Failed To Apply for Leave")
+        except Exception as e: # Catch specific exceptions if possible
+            messages.error(request, f"Failed To Apply for Leave: {e}") # Show error message
             return HttpResponseRedirect(reverse("student_apply_leave"))
 
-
+# --- Student Feedback ---
 def student_feedback(request):
-    staff_id=Students.objects.get(admin=request.user.id)
-    feedback_data=FeedBackStudent.objects.filter(student_id=staff_id)
-    return render(request,"student_template/student_feedback.html",{"feedback_data":feedback_data})
+    # Get the student's profile
+    # Renamed variable from staff_id to student_obj for clarity
+    student_obj = get_object_or_404(Students, user=request.user)
+    # Filter feedback using the new field name 'student'
+    feedback_data = FeedBackStudent.objects.filter(student=student_obj)
+    return render(request, "student_template/student_feedback.html", {"feedback_data": feedback_data})
 
+# --- Student Feedback Save ---
 def student_feedback_save(request):
-    if request.method!="POST":
+    if request.method != "POST":
         return HttpResponseRedirect(reverse("student_feedback"))
     else:
-        feedback_msg=request.POST.get("feedback_msg")
+        feedback_msg = request.POST.get("feedback_msg")
 
-        student_obj=Students.objects.get(admin=request.user.id)
+        # Get the student's profile
+        student_obj = get_object_or_404(Students, user=request.user)
+
         try:
-            feedback=FeedBackStudent(student_id=student_obj,feedback=feedback_msg,feedback_reply="")
+            # Create FeedBackStudent using new field name 'student'
+            # feedback_reply is nullable and blank
+            feedback = FeedBackStudent(
+                student=student_obj,
+                feedback=feedback_msg,
+                feedback_reply=None # Use None for nullable field if no reply yet
+            )
             feedback.save()
             messages.success(request, "Successfully Sent Feedback")
             return HttpResponseRedirect(reverse("student_feedback"))
-        except:
-            messages.error(request, "Failed To Send Feedback")
+        except Exception as e: # Catch specific exceptions if possible
+            messages.error(request, f"Failed To Send Feedback: {e}") # Show error message
             return HttpResponseRedirect(reverse("student_feedback"))
 
+# --- Student Profile ---
 def student_profile(request):
-    user=CustomUser.objects.get(id=request.user.id)
-    student=Students.objects.get(admin=user)
-    return render(request,"student_template/student_profile.html",{"user":user,"student":student})
+    # request.user is already the CustomUser object
+    user = request.user
+    # Get the student's profile using the new field name 'user'
+    student = get_object_or_404(Students, user=user)
+    return render(request, "student_template/student_profile.html", {"user": user, "student": student})
 
+# --- Student Profile Save ---
 def student_profile_save(request):
-    if request.method!="POST":
+    if request.method != "POST":
         return HttpResponseRedirect(reverse("student_profile"))
     else:
-        first_name=request.POST.get("first_name")
-        last_name=request.POST.get("last_name")
-        password=request.POST.get("password")
-        address=request.POST.get("address")
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        password = request.POST.get("password") # Handle password change
+        address = request.POST.get("address") # Assuming address is editable here
+
         try:
-            customuser=CustomUser.objects.get(id=request.user.id)
-            customuser.first_name=first_name
-            customuser.last_name=last_name
-            if password!=None and password!="":
+            # request.user is already the CustomUser object
+            customuser = request.user
+            customuser.first_name = first_name
+            customuser.last_name = last_name
+
+            # Handle password change ONLY if a new password is provided
+            if password: # Check if password is not None and not an empty string
                 customuser.set_password(password)
+
             customuser.save()
 
-            student=Students.objects.get(admin=customuser)
-            student.address=address
+            # Get the student's profile using the new field name 'user'
+            student = get_object_or_404(Students, user=customuser)
+            student.address = address
+            # Add other editable student fields here if they are in the form
+            # student.gender = request.POST.get("gender")
+            # student.age = request.POST.get("age")
             student.save()
+
             messages.success(request, "Successfully Updated Profile")
             return HttpResponseRedirect(reverse("student_profile"))
-        except:
-            messages.error(request, "Failed to Update Profile")
+        except Exception as e: # Catch specific exceptions if possible
+            messages.error(request, f"Failed to Update Profile: {e}") # Show error message
             return HttpResponseRedirect(reverse("student_profile"))
 
+# --- Student FCM Token Save (AJAX) ---
 @csrf_exempt
 def student_fcmtoken_save(request):
-    token=request.POST.get("token")
+    if request.method != "POST":
+        return HttpResponse("Method Not Allowed")
+
+    token = request.POST.get("token")
     try:
-        student=Students.objects.get(admin=request.user.id)
-        student.fcm_token=token
+        # Get the student's profile using the new field name 'user'
+        student = get_object_or_404(Students, user=request.user)
+        student.fcm_token = token
         student.save()
-        return HttpResponse("True")
-    except:
-        return HttpResponse("False")
+        return HttpResponse("True") # Indicate success
+    except Exception as e: # Catch specific exceptions if possible
+        print(f"Error saving student FCM token: {e}") # Log error
+        return HttpResponse("False") # Indicate failure
 
 
+# --- Student All Notifications ---
 def student_all_notification(request):
-    student=Students.objects.get(admin=request.user.id)
-    notifications=NotificationStudent.objects.filter(student_id=student.id)
-    return render(request,"student_template/all_notification.html",{"notifications":notifications})
+    # Get the student's profile using the new field name 'user'
+    student = get_object_or_404(Students, user=request.user)
+    # Filter notifications using the new field name 'student'
+    notifications = NotificationStudent.objects.filter(student=student)
+    return render(request, "student_template/all_notification.html", {"notifications": notifications})
 
+# --- Join Class Room ---
+def join_class_room(request, subject_id, session_year_id):
+    # Use get_object_or_404 for safer lookups
+    session_year_obj = get_object_or_404(SessionYearModel, id=session_year_id)
+    subject_obj = get_object_or_404(Subjects, id=subject_id)
 
+    # Get the student's profile
+    student_obj = get_object_or_404(Students, user=request.user)
 
-def join_class_room(request,subject_id,session_year_id):
-    session_year_obj=SessionYearModel.object.get(id=session_year_id)
-    subjects=Subjects.objects.filter(id=subject_id)
-    if subjects.exists():
-        session=SessionYearModel.object.filter(id=session_year_obj.id)
-        if session.exists():
-            subject_obj=Subjects.objects.get(id=subject_id)
-            course=Courses.objects.get(id=subject_obj.course_id.id)
-            check_course=Students.objects.filter(admin=request.user.id,course_id=course.id)
-            if check_course.exists():
-                session_check=Students.objects.filter(admin=request.user.id,session_year_id=session_year_obj.id)
-                if session_check.exists():
-                    onlineclass=OnlineClassRoom.objects.get(session_years=session_year_id,subject=subject_id)
-                    return render(request,"student_template/join_class_room_start.html",{"username":request.user.username,"password":onlineclass.room_pwd,"roomid":onlineclass.room_name})
+    # Access related course using new field name 'course'
+    course = subject_obj.course
 
-                else:
-                    return HttpResponse("This Online Session is Not For You")
-            else:
-                return HttpResponse("This Subject is Not For You")
-        else:
-            return HttpResponse("Session Year Not Found")
+    # Check if the student is enrolled in this course and session year
+    # Filter Students using new field names 'user', 'course', and 'session_year'
+    check_enrollment = Students.objects.filter(
+        user=request.user,
+        course=course,
+        session_year=session_year_obj
+    ).exists()
+
+    if check_enrollment:
+        try:
+            # Use new field names 'session_years' and 'subject' for OnlineClassRoom lookup
+            onlineclass = OnlineClassRoom.objects.get(session_years=session_year_obj, subject=subject_obj)
+            return render(request, "student_template/join_class_room_start.html", {
+                "username": request.user.username,
+                "password": onlineclass.room_pwd, # Note: Displaying passwords directly is insecure
+                "roomid": onlineclass.room_name
+            })
+        except OnlineClassRoom.DoesNotExist:
+            messages.warning(request, "No online class scheduled for this subject and session yet.")
+            # Redirect back to a suitable page, e.g., student home or subjects list
+            return HttpResponseRedirect(reverse("student_home")) # Or another relevant view
+        except Exception as e:
+            messages.error(request, f"An error occurred: {e}")
+            # Redirect back to a suitable page
+            return HttpResponseRedirect(reverse("student_home")) # Or another relevant view
     else:
-        return HttpResponse("Subject Not Found")
+        # Student is not enrolled in this subject's course/session
+        messages.warning(request, "This subject is not part of your enrolled course or session.")
+        # Redirect back to a suitable page
+        return HttpResponseRedirect(reverse("student_home")) # Or another relevant view
 
+
+# --- Student View Result ---
 def student_view_result(request):
-    user=CustomUser.objects.get(id=request.user.id)
-    student=Students.objects.get(admin=user)
-    studentresult=StudentResult.objects.filter(student_id=student.id)
+    # request.user is already the CustomUser object
+    user = request.user
+    # Get the student's profile using the new field name 'user'
+    student = get_object_or_404(Students, user=user)
+    # Filter student results using the new field name 'student'
+    studentresult = StudentResult.objects.filter(student=student)
 
-    return render(request,"student_template/student_result.html",{"studentresult":studentresult,"student":student})
+    return render(request, "student_template/student_result.html", {"studentresult": studentresult, "student": student})
 
-
-
-
-
-
-#Creating a class based view
+# --- Generate PDF (Class-Based View) ---
 class GeneratePdf(View):
-     def get(self, request, *args, **kwargs):
-        user=CustomUser.objects.get(id=request.user.id)
-        student=Students.objects.get(admin=user)
-        studentresult=StudentResult.objects.filter(student_id=student.id)
-         
-        # getting the template
-        pdf = html_to_pdf('student_template/student_result.html',{"studentresult":studentresult,"student":student,'user':user})
-         
-         # rendering the template
-        return HttpResponse(pdf, content_type='application/pdf')
+    def get(self, request, *args, **kwargs):
+        # request.user is already the CustomUser object
+        user = request.user
+        # Get the student's profile using the new field name 'user'
+        student = get_object_or_404(Students, user=user)
+        # Filter student results using the new field name 'student'
+        studentresult = StudentResult.objects.filter(student=student)
+
+        # Make sure the template context matches what the template expects
+        context = {"studentresult": studentresult, "student": student, 'user': user}
+
+        # Render the template to HTML and then convert to PDF
+        # Ensure 'student_template/student_result.html' is the correct template path for the PDF
+        pdf = html_to_pdf('student_template/student_result.html', context)
+
+        if pdf:
+            response = HttpResponse(pdf, content_type='application/pdf')
+            # Optionally add a filename for download
+            filename = f"Student_Result_{student.user.username}.pdf"
+            content = f"attachment; filename={filename}"
+            response['Content-Disposition'] = content
+            return response
+        else:
+            # Handle error if PDF generation failed
+            messages.error(request, "Failed to generate PDF.")
+            # Redirect back to the result view or show an error page
+            return HttpResponse("Error Generating PDF", status=400)

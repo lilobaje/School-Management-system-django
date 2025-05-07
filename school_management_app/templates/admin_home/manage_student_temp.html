@@ -3,78 +3,97 @@
 Manage Student
 {% endblock page_title %}
 {% block main_content %}
-    <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
 
 
            <div class="row">
-          <div class="col-12">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Student Details</h3>
+           <div class="col-12">
+             <div class="card">
+               <div class="card-header">
+                 <h3 class="card-title">Student Details</h3>
 
-                <div class="card-tools">
-                  <form class="form-inline ml-3" action="" method="GET" >
-                  <div class="input-group input-group-sm" style="width: 150px;">
-                    <input type="text" name="q" class="form-control float-right" placeholder="Search">
-
-                    <div class="input-group-append">
-                      <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
-                    </div>
-                  </div>
-                </form>
-                </div>
-              </div>
-              <!-- /.card-header -->
-              <div class="card-body table-responsive p-0">
-                <table class="table table-hover text-nowrap">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>First Name</th>
-                      <th>Last Name</th>
-                      <th>User Name</th>
-                      <th>Email</th>
-                      <th>Address</th>
-                      <th>Gender</th>
-                      <th>Profile Pic</th>
-                      <th>Session Year</th>
-                      <th>Course</th>
-                      <th>Last Login</th>
-                      <th>Date Joined</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  {% for student in students %}
-                    <tr>
-                      <td>{{ student.admin.id }}</td>
-                      <td>{{ student.admin.first_name }}</td>
-                      <td>{{ student.admin.last_name }}</td>
-                      <td>{{ student.admin.username }}</td>
-                      <td>{{ student.email }}</td>
-                      <td>{{ student.address }}</td>
-                      <td>{{ student.gender }}</td>
-                      <td><img src="{{ student.profile_pic }}" style="width:50px"/></td>
-                      <td>{{ student.session_year_id.session_start_year }} TO {{ student.session_year_id.session_end_year }}</td>
-                      <td>{{ student.course_id.course_name }}</td>
-                      <td>{{ student.admin.last_login }}</td>
-                      <td>{{ student.admin.date_joined }}</td>
-                      <td><a href="{% url 'edit_student' student_id=student.admin.id %}" class="btn btn-success">Edit</a></td>
-                      <td><a href="/deletestudent/{{ student.admin.id }}" class="btn btn-success">Delete</a></td>
-                    </tr>
-                  {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-              <!-- /.card-body -->
-            </div>
-            <!-- /.card -->
-          </div>
-        </div>
+                 <div class="card-tools">
+                   {# Use the url tag for the search form action #}
+                   {# Assuming 'Search_student' is the URL name for the search functionality #}
+                   <form class="form-inline ml-3" action="{% url 'Search_student' %}" method="GET" >
+                   <div class="input-group input-group-sm" style="width: 150px;">
+                     <input type="text" name="q" class="form-control float-right" placeholder="Search" value="{{ request.GET.q }}"> {# Keep search term on reload #}
+                     <div class="input-group-append">
+                       <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+                     </div>
+                   </div>
+                 </form>
+                 </div>
+               </div>
+               <div class="card-body table-responsive p-0">
+                 <table class="table table-hover text-nowrap">
+                   <thead>
+                     <tr>
+                       {# Display the CustomUser ID via the related 'user' field #}
+                       <th>ID</th>
+                       {# Display names, username, email from the related 'user' field #}
+                       <th>First Name</th>
+                       <th>Last Name</th>
+                       <th>User Name</th>
+                       <th>Email</th>
+                       {# Address, Gender, Profile Pic are on the Students model #}
+                       <th>Address</th>
+                       <th>Gender</th>
+                       <th>Profile Pic</th>
+                       {# Display Session Year from the related 'session_year' field #}
+                       <th>Session Year</th>
+                       {# Display Course from the related 'course' field #}
+                       <th>Course</th>
+                       {# Display login/join dates from the related 'user' field #}
+                       <th>Last Login</th>
+                       <th>Date Joined</th>
+                       <th>Action</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                   {% for student in students %}
+                     <tr>
+                       {# Access the CustomUser ID via the 'user' relationship #}
+                       <td>{{ student.user.id }}</td>
+                       {# Access names, username, email from the 'user' relationship #}
+                       <td>{{ student.user.first_name }}</td>
+                       <td>{{ student.user.last_name }}</td>
+                       <td>{{ student.user.username }}</td>
+                       {# Access email from the 'user' relationship #}
+                       <td>{{ student.user.email }}</td>
+                       {# Address, Gender, Profile Pic are on the Students object itself #}
+                       <td>{{ student.address }}</td>
+                       <td>{{ student.gender }}</td>
+                       <td>
+                           {# Check if profile_pic exists before displaying #}
+                           {% if student.profile_pic %}
+                               <img src="{{ student.profile_pic.url }}" style="width:50px; height:50px; object-fit: cover;"/> {# Added .url and styling #}
+                           {% else %}
+                               N/A
+                           {% endif %}
+                       </td>
+                       {# Access related Session Year using the new field name 'session_year' #}
+                       <td>{{ student.session_year.session_start_year }} TO {{ student.session_year.session_end_year }}</td>
+                       {# Access related Course using the new field name 'course' #}
+                       <td>{{ student.course.course_name }}</td>
+                       {# Access login/join dates from the 'user' relationship #}
+                       <td>{{ student.user.last_login }}</td>
+                       <td>{{ student.user.date_joined }}</td>
+                       <td>
+                           {# Use the url tag and the CustomUser ID for the Edit link #}
+                           <a href="{% url 'edit_student' student_id=student.user.id %}" class="btn btn-success btn-sm">Edit</a>
+                           {# Use the url tag and the CustomUser ID for the Delete link #}
+                           <a href="{% url 'deletestudent' student.user.id %}" class="btn btn-danger btn-sm">Delete</a>
+                       </td>
+                     </tr>
+                   {% endfor %}
+                   </tbody>
+                 </table>
+               </div>
+               </div>
+             </div>
+         </div>
       </div>
     </section>
-    <!-- /.content -->
-{% endblock main_content %}
-
+    {% endblock main_content %}
